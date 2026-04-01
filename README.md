@@ -112,3 +112,182 @@ app-1  | [Nest] 29  - 03/26/2026, 10:28:56 AM     LOG [InstanceLoader] TypeOrmCo
 app-1  | [Nest] 29  - 03/26/2026, 10:28:56 AM     LOG [RoutesResolver] AppController {/}: +9ms
 app-1  | [Nest] 29  - 03/26/2026, 10:28:56 AM     LOG [RouterExplorer] Mapped {/, GET} route +8ms
 app-1  | [Nest] 29  - 03/26/2026, 10:28:56 AM     LOG [NestApplication] Nest application successfully started +5ms
+
+
+
+
+
+
+
+
+
+
+
+
+## Student
+- Name: Дем'яненко Микола Володимирович
+- Group: 232/1
+
+---
+
+## Практичне заняття №3 — CRUD REST API (MiniShop)
+
+### 1. Конфігурація TypeORM
+.
+├── src/                        # Вихідний код застосунку
+│   ├── categories/             # Модуль категорій
+│   │   ├── categories.controller.ts  # Обробка маршрутів /api/categories
+│   │   ├── categories.module.ts      # Реєстрація модуля категорій
+│   │   ├── categories.service.ts     # Бізнес-логіка (CRUD) для категорій
+│   │   └── category.entity.ts        # Опис таблиці категорій у БД
+│   ├── migrations/             # Папка з міграціями (керування схемою БД)
+│   │   ├── 1740000000000-CreateTables.ts        # Створення початкових таблиць
+│   │   └── 1774536620654-AddIsActiveToProducts.ts # Додавання поля isActive
+│   ├── products/               # Модуль продуктів
+│   │   ├── product.entity.ts         # Опис таблиці продуктів у БД
+│   │   ├── products.controller.ts    # Обробка маршрутів /api/products
+│   │   ├── products.module.ts        # Реєстрація модуля продуктів
+│   │   └── products.service.ts       # Бізнес-логіка (CRUD) для продуктів
+│   ├── app.controller.ts       # Базовий контролер
+│   ├── app.module.ts           # Головний модуль (з'єднує БД та всі модулі)
+│   ├── app.service.ts          # Базовий сервіс
+│   ├── data-source.ts          # Конфігурація для TypeORM CLI (міграції)
+│   └── main.ts                 # Точка входу (запуск NestJS)
+├── test/                       # Папка для автоматичних тестів
+├── .dockerignore               # Файли, що не копіюються в Docker
+├── .env                        # Секретні змінні оточення (НЕ ДЛЯ GIT!)
+├── .env.example                # Шаблон змінних оточення для GitHub
+├── .gitignore                  # Список ігнорування файлів для Git
+├── .prettierrc                 # Налаштування форматування коду
+├── docker-compose.yml          # Конфігурація сервісів (App, Postgres, Redis)
+├── Dockerfile                  # Інструкція для збірки Docker-образу
+├── eslint.config.mjs           # Налаштування лінтера (перевірка якості коду)
+├── nest-cli.json               # Конфігурація Nest CLI
+├── package.json                # Залежності проєкту та скрипти (npm run ...)
+├── package-lock.json           # Зафіксовані версії бібліотек
+├── README.md                   # Звіт про виконання роботи
+├── tsconfig.json               # Головні налаштування TypeScript
+└── tsconfig.build.json         # Налаштування TypeScript для збірки (build)
+
+
+
+### Запуск проекту
+[+] up 4/4
+ ✔ Image hlpf-env-setup-app            Built                                                                                                                                15.7s
+ ✔ Container hlpf-env-setup-redis-1    Running                                                                                                                              0.0s 
+ ✔ Container hlpf-env-setup-postgres-1 Running                                                                                                                              0.0s 
+ ✔ Container hlpf-env-setup-app-1      Recreated                                                                                                                            10.6s
+Attaching to app-1, postgres-1, redis-1
+Container hlpf-env-setup-redis-1 Waiting 
+Container hlpf-env-setup-postgres-1 Waiting 
+Container hlpf-env-setup-postgres-1 Healthy 
+Container hlpf-env-setup-redis-1 Healthy 
+
+
+
+
+### API Endpoints
+| Method | URL | Опис |
+|--------|-----|------|
+| GET | /api/categories | Список категорій |
+| GET | /api/categories/:id | Одна категорія |
+| POST | /api/categories | Створити категорію |
+| PATCH | /api/categories/:id | Оновити категорію |
+| DELETE | /api/categories/:id | Видалити категорію |
+| GET | /api/products | Список продуктів |
+| GET | /api/products/:id | Один продукт |
+| POST | /api/products | Створити продукт |
+| PATCH | /api/products/:id | Оновити продукт |
+| DELETE | /api/products/:id | Видалити продукт |
+
+
+
+
+### Перевірка міграцій
+PS C:\hlpf-env-setup> docker compose exec postgres psql -U nestuser -d nestdb -c "\dt"
+           List of relations
+ Schema |    Name    | Type  |  Owner
+--------+------------+-------+----------
+ public | categories | table | nestuser
+ public | migrations | table | nestuser
+ public | products   | table | nestuser
+(3 rows)
+
+
+### Тест створення категорії
+PS C:\hlpf-env-setup> Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/categories" -ContentType "application/json" -Body '{"name": "Food", "description": "Grocery and drinks"}'
+
+id name description        createdAt
+-- ---- -----------        ---------
+ 4 Food Grocery and drinks 2026-04-01T13:19:45.550Z
+
+
+PS C:\hlpf-env-setup>
+
+
+
+
+
+
+
+
+### Тест створення продукту
+PS C:\hlpf-env-setup> Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/products" -ContentType "application/json" -Body '{"name": "iPhone 15", "description": "Latest Apple smartphone", "price": 999.99, "stock": 50, "categoryId": 1}'
+
+
+id          : 3
+name        : iPhone 15
+description : Latest Apple smartphone
+price       : 999,99
+stock       : 50
+isActive    : True
+category    : @{id=1}
+createdAt   : 2026-04-01T13:22:56.518Z
+updatedAt   : 2026-04-01T13:22:56.518Z
+
+
+
+PS C:\hlpf-env-setup>
+
+
+
+
+
+### Тест отримання продуктів
+PS C:\hlpf-env-setup> Invoke-RestMethod -Uri "http://localhost:3000/api/products" -Method Get
+
+
+id          : 1
+name        : iPhone 15
+description :
+price       : 899.99
+stock       : 45
+isActive    : True
+category    : @{id=1; name=Electronics; description=Gadgets and devices; createdAt=2026-04-01T12:32:54.224Z}
+createdAt   : 2026-04-01T12:36:18.108Z
+updatedAt   : 2026-04-01T12:36:58.696Z
+
+id          : 3
+name        : iPhone 15
+description : Latest Apple smartphone
+price       : 999.99
+stock       : 50
+isActive    : True
+category    : @{id=1; name=Electronics; description=Gadgets and devices; createdAt=2026-04-01T12:32:54.224Z}
+createdAt   : 2026-04-01T13:22:56.518Z
+updatedAt   : 2026-04-01T13:22:56.518Z
+
+
+
+PS C:\hlpf-env-setup> 
+
+
+
+### Тест 404
+PS C:\hlpf-env-setup> try { Invoke-RestMethod -Uri "http://localhost:3000/api/products/999" -Method Get } catch { $_.Exception.Response.GetResponseStream().ReadToEnd() }
+Method invocation failed because [System.Net.SyncMemoryStream] does not contain a method named 'ReadToEnd'.
+At line:1 char:93
++ ... Get } catch { $_.Exception.Response.GetResponseStream().ReadToEnd() }
++                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
+    + FullyQualifiedErrorId : MethodNotFound
