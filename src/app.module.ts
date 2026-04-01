@@ -3,36 +3,54 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+
+import { Category } from './categories/category.entity';
+import { Product } from './products/product.entity';
+import { CategoriesModule } from './categories/categories.module';
+import { ProductsModule } from './products/products.module';
+
+// Твої реальні міграції з таймстампами
+import { CreateTables1740000000000 } from './migrations/1740000000000-CreateTables';
+import { AddIsActiveToProducts1774536620654 } from './migrations/1774536620654-AddIsActiveToProducts';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
-      // Додано || '5432', щоб TypeScript не сварився
       port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [],
-      synchronize: true,
+      entities: [Category, Product],
+      synchronize: false,    // КРИТИЧНО: має бути false
+      migrationsRun: true,
+      migrations: [
+        CreateTables1740000000000,
+        AddIsActiveToProducts1774536620654,
+      ],
     }),
+
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
         store: await redisStore({
           socket: {
             host: process.env.REDIS_HOST,
-            // Додано || '6379', щоб TypeScript не сварився
             port: parseInt(process.env.REDIS_PORT || '6379', 10),
           },
         }),
         ttl: 60 * 1000,
       }),
     }),
+
+    CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
