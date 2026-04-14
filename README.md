@@ -291,3 +291,104 @@ At line:1 char:93
 +                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : InvalidOperation: (:) [], RuntimeException
     + FullyQualifiedErrorId : MethodNotFound
+
+
+
+
+
+
+
+
+
+
+
+## Student
+- Name: Дем'яненко Микола Володимирович
+- Group: 232/1
+
+## Практичне заняття №4 — DTO + class-validator + Pipes
+
+### Структура репозиторію
+```text
+.
+├── src/
+│   ├── categories/
+│   │   ├── dto/
+│   │   │   ├── create-category.dto.ts
+│   │   │   └── update-category.dto.ts
+│   │   ├── category.entity.ts
+│   │   ├── categories.module.ts
+│   │   ├── categories.service.ts
+│   │   └── categories.controller.ts
+│   ├── products/
+│   │   ├── dto/
+│   │   │   ├── create-product.dto.ts
+│   │   │   └── update-product.dto.ts
+│   │   ├── product.entity.ts
+│   │   ├── products.module.ts
+│   │   ├── products.service.ts
+│   │   └── products.controller.ts
+│   ├── common/
+│   │   └── pipes/
+│   │       └── trim.pipe.ts
+│   ├── migrations/
+│   ├── data-source.ts
+│   ├── main.ts
+│   └── app.module.ts
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+
+
+###Запуск проекту
+cp .env.example .env
+docker compose up --build
+
+###Тест валідації — порожнє ім'я категорії
+PS C:\hlpf-env-setup> $b='{"name":""}'; try { Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/categories" -ContentType "application/json" -Body $b } catch { (New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())).ReadToEnd() }
+
+PS C:\hlpf-env-setup> 
+
+
+###  Тест валідації — від'ємна ціна продукту
+PS C:\hlpf-env-setup> $b='{"name": "Test", "price": -5}'; try { Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/products" -ContentType "application/json" -Body $b } catch { (New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())).ReadToEnd() }
+
+PS C:\hlpf-env-setup> 
+
+
+###Тест валідації — зайве поле (forbidNonWhitelisted)
+PS C:\hlpf-env-setup> $b='{"name": "Test", "isAdmin": true}'; try { Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/categories" -ContentType "application/json" -Body $b } catch { (New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())).ReadToEnd() }
+
+PS C:\hlpf-env-setup> 
+
+
+###Тест TrimPipe
+PS C:\hlpf-env-setup> $b='{"name": "  TrimmedCategory  "}'; Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/categories" -ContentType "application/json" -Body $b
+
+id name            description createdAt
+-- ----            ----------- ---------
+ 8 TrimmedCategory             2026-04-14T17:47:08.227Z
+
+
+PS C:\hlpf-env-setup>
+
+
+###Тест валідне створення продукту
+PS C:\hlpf-env-setup> $b='{"name": "Valid iPhone", "price": 999.99, "stock": 10, "categoryId": 6}'; Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/products" -ContentType "application/json" -Body $b
+
+
+id          : 5
+name        : Valid iPhone
+description :
+price       : 999,99
+stock       : 10
+isActive    : True
+category    : @{id=6}
+createdAt   : 2026-04-14T17:47:31.000Z
+updatedAt   : 2026-04-14T17:47:31.000Z
+
+
+
+PS C:\hlpf-env-setup>
+
