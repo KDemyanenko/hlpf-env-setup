@@ -392,3 +392,152 @@ updatedAt   : 2026-04-14T17:47:31.000Z
 
 PS C:\hlpf-env-setup>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Student
+- Name: Дем'яненко Микола Володимирович
+- Group: 232/1
+
+## Практичне заняття №5 — JWT Authentication + Guards + RBAC
+
+### Структура репозиторію
+```text
+.
+├── src/
+│   ├── auth/
+│   │   ├── dto/
+│   │   │   ├── register.dto.ts
+│   │   │   └── login.dto.ts
+│   │   ├── auth.module.ts
+│   │   ├── auth.service.ts
+│   │   └── auth.controller.ts
+│   ├── users/
+│   │   ├── user.entity.ts
+│   │   ├── users.module.ts
+│   │   └── users.service.ts
+│   ├── common/
+│   │   ├── enums/
+│   │   │   └── role.enum.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── roles.guard.ts
+│   │   ├── decorators/
+│   │   │   ├── current-user.decorator.ts
+│   │   │   └── roles.decorator.ts
+│   │   └── pipes/
+│   │       └── trim.pipe.ts
+│   ├── categories/
+│   ├── products/
+│   ├── migrations/
+│   ├── data-source.ts
+│   ├── main.ts
+│   └── app.module.ts
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+
+### Запуск проекту
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+
+
+### API Endpoints
+| Method |       URL         | Auth | Role |
+|--------|-------------------|------|------|
+| POST   | /auth/register    | -   | -     |
+| POST   | /auth/login       | -   | -     |
+| GET    | /api/categories   | -   | -     |
+| POST   | /api/categories   | JWT | admin |
+| GET    | /api/products     | -   | -     |
+| POST   | /api/products     | JWT | admin |
+| PATCH  | /api/products/:id | JWT | admin |
+| DELETE | /api/products/:id | JWT | admin |
+
+
+
+### Тест реєстрації
+PS C:\hlpf-env-setup> $regAdmin = '{"email": "admin@test.com", "password": "password123", "name": "System Admin"}'
+PS C:\hlpf-env-setup> Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/register" -ContentType "application/json" -Body $regAdmin
+
+id        : 2
+email     : admin@test.com
+name      : System Admin
+role      : user
+createdAt : 2026-04-16T15:10:19.802Z
+
+
+
+
+### Тест логіну
+PS C:\hlpf-env-setup> curl.exe --% -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d "{\"email\": \"admin@test.com\", \"password\": \"password123\"}"
+{"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzYzNTQyMDQsImV4cCI6MTc3NjM1NzgwNH0.uoocsh3pWrgNrZ5vqPZYGwnQaotnxqE5olVhXhL4QAc"}
+
+
+### Тест 401 — запит без токена
+PS C:\hlpf-env-setup> $body = '{"name": "Check Guard", "price": 10}'
+PS C:\hlpf-env-setup> try {
+>>     $res = Invoke-WebRequest -Method Post -Uri "http://localhost:3000/api/products" -ContentType "application/json" -Body $body -ErrorAction Stop
+>>     Write-Host "ТРИВОГА: Сервер все ще пускає анонімів! (Status: $($res.StatusCode))" -ForegroundColor Red
+>> } catch {
+>>     $statusCode = $_.Exception.Response.StatusCode.value__
+>>     $stream = $_.Exception.Response.GetResponseStream()
+>>     $reader = New-Object System.IO.StreamReader($stream)
+>>     $text = $reader.ReadToEnd()
+>>     Write-Host "УСПІХ: Запит відхилено (Status: $statusCode)" -ForegroundColor Green
+>>     Write-Output "Відповідь сервера: $text"
+>> }
+УСПІХ: Запит відхилено (Status: 401)
+Відповідь сервера:
+PS C:\hlpf-env-setup>
+
+
+
+
+### Тест 403 — запит з роллю user
+PS C:\hlpf-env-setup> $res = Invoke-WebRequest -Method Post -Uri "http://localhost:3000/api/products" -Headers @{ Authorization = "Bearer $U_TOKEN" } -ContentType "application/json" -Body '{"name": "Restricted", "price": 10}' -ErrorAction SilentlyContinue
+Invoke-WebRequest : {"message":"У вас недостатньо прав (потрібна роль: admin)","error":"Forbidden","statusCode":403}
+At line:1 char:8
++ $res = Invoke-WebRequest -Method Post -Uri "http://localhost:3000/api ...
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+PS C:\hlpf-env-setup> $res.Content
+PS C:\hlpf-env-setup> 
+
+
+
+### Тест успішного створення від admin
+PS C:\hlpf-env-setup> $login = '{"email": "admin@test.com", "password": "password123"}'
+PS C:\hlpf-env-setup> $res = Invoke-RestMethod -Method Post -Uri "http://localhost:3000/auth/login" -ContentType "application/json" -Body $login
+PS C:\hlpf-env-setup> $headers = @{ Authorization = "Bearer $($res.accessToken)" }
+PS C:\hlpf-env-setup> $body = '{"name": "Admin MacBook", "price": 1500, "stock": 5, "categoryId": 1}'
+PS C:\hlpf-env-setup> Invoke-RestMethod -Method Post -Uri "http://localhost:3000/api/products" -Headers $headers -ContentType "application/json" -Body $body
+
+
+id          : 12
+name        : Admin MacBook
+description :
+price       : 1500
+stock       : 5
+isActive    : True
+category    : @{id=1}
+createdAt   : 2026-04-16T16:07:48.262Z
+updatedAt   : 2026-04-16T16:07:48.262Z
