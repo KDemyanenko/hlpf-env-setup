@@ -6,12 +6,16 @@ import { redisStore } from 'cache-manager-redis-yet';
 
 import { Category } from './categories/category.entity';
 import { Product } from './products/product.entity';
+import { User } from './users/user.entity';
+
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module'; // ІМПОРТ AuthModule
 
-// Твої реальні міграції з таймстампами
 import { CreateTables1740000000000 } from './migrations/1740000000000-CreateTables';
 import { AddIsActiveToProducts1774536620654 } from './migrations/1774536620654-AddIsActiveToProducts';
+// Якщо ти вже згенерував міграцію для Users, додай її сюди також
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -27,8 +31,8 @@ import { AppService } from './app.service';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [Category, Product],
-      synchronize: false,    // КРИТИЧНО: має бути false
+      entities: [Category, Product, User],
+      synchronize: false,
       migrationsRun: true,
       migrations: [
         CreateTables1740000000000,
@@ -51,6 +55,8 @@ import { AppService } from './app.service';
 
     CategoriesModule,
     ProductsModule,
+    UsersModule,
+    AuthModule, // ПІДКЛЮЧЕННЯ AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],
