@@ -1,20 +1,18 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsOptional,
-} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Некоректний формат email' })
+  @ApiProperty({ example: 'user@test.com', description: 'Електронна пошта' })
+  @IsEmail()
   email: string;
 
+  @ApiProperty({ example: 'password123', description: 'Пароль (мін. 8 символів)', minLength: 8 })
   @IsString()
-  @MinLength(8, { message: 'Пароль має бути не менше 8 символів' })
-  @MaxLength(128, { message: 'Пароль занадто довгий' })
+  @MinLength(8)
+  @MaxLength(128)
   password: string;
 
+  @ApiPropertyOptional({ example: 'Mykola Demyanenko', description: 'Імʼя користувача' })
   @IsOptional()
   @IsString()
   @MaxLength(100)

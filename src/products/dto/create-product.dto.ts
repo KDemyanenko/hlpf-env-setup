@@ -1,34 +1,32 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsInt,
-  Min,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, IsInt, Min, MaxLength, MinLength } from 'class-validator';
 
 export class CreateProductDto {
+  @ApiProperty({ example: 'iPhone 16', description: 'Назва продукту', maxLength: 255 })
   @IsString()
-  @MinLength(2, { message: 'Назва товару має бути не коротшою за 2 символи' })
+  @MinLength(2)
   @MaxLength(255)
   name: string;
 
-  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Ціна має бути числом з макс. 2 знаками після коми' })
-  @Min(0.01, { message: 'Ціна не може бути меншою за 0.01' })
+  @ApiProperty({ example: 999.99, description: 'Ціна у гривнях', minimum: 0.01 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
   price: number;
 
+  @ApiPropertyOptional({ example: 'Flagship smartphone', description: 'Опис продукту' })
   @IsOptional()
   @IsString()
   @MaxLength(1000)
   description?: string;
 
+  @ApiPropertyOptional({ example: 50, description: 'Кількість на складі', default: 0 })
   @IsOptional()
-  @IsInt({ message: 'Кількість має бути цілим числом' })
-  @Min(0, { message: 'Кількість не може бути від’ємною' })
+  @IsInt()
+  @Min(0)
   stock?: number;
 
+  @ApiPropertyOptional({ example: 1, description: 'ID категорії' })
   @IsOptional()
-  @IsInt({ message: 'ID категорії має бути цілим числом' })
+  @IsInt()
   categoryId?: number;
 }
