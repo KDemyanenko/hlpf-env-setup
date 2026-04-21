@@ -541,3 +541,119 @@ isActive    : True
 category    : @{id=1}
 createdAt   : 2026-04-16T16:07:48.262Z
 updatedAt   : 2026-04-16T16:07:48.262Z
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Student
+- Name: Дем'яненко Микола Володимирович
+- Group: 232/1
+
+## Практичне заняття №6 — Interceptors + Exception Filters + Swagger
+
+### Структура репозиторію
+.
+├── src/
+│   ├── auth/ ...
+│   ├── users/ ...
+│   ├── categories/ ...
+│   ├── products/ ...
+│   ├── common/
+│   │   ├── enums/
+│   │   │   └── role.enum.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── roles.guard.ts
+│   │   ├── decorators/
+│   │   │   ├── current-user.decorator.ts
+│   │   │   └── roles.decorator.ts
+│   │   ├── interceptors/
+│   │   │   ├── logging.interceptor.ts
+│   │   │   └── transform.interceptor.ts
+│   │   ├── filters/
+│   │   │   └── http-exception.filter.ts
+│   │   └── pipes/
+│   │       └── trim.pipe.ts
+│   ├── migrations/
+│   ├── main.ts
+│   └── app.module.ts
+├── swagger-screenshot.png
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+### Запуск проекту
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+
+### Swagger UI
+http://localhost:3000/api/docs
+ 
+![Swagger](swagger-screenshot.png)
+ 
+### Формат успішної відповіді
+```json
+{
+  "data": { ... },
+  "statusCode": 200,
+  "timestamp": "2025-01-15T10:30:00.000Z"
+}
+```
+ 
+### Формат помилки
+```json
+{
+  "error": {
+	"code": 400,
+	"message": "Validation failed",
+	"details": ["name must be longer..."],
+	"traceId": "a1b2c3..."
+  },
+  "timestamp": "2025-01-15T10:31:00.000Z"
+}
+```
+
+
+### Приклад логів (LoggingInterceptor)
+PS C:\hlpf-env-setup> docker compose logs --tail 15 app
+app-1  |     at next (/app/node_modules/router/lib/route.js:157:13)
+app-1  |     at Route.dispatch (/app/node_modules/router/lib/route.js:117:3)
+app-1  |     at handle (/app/node_modules/router/index.js:435:11)
+app-1  |     at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+app-1  | [Nest] 29  - 04/21/2026, 11:05:53 AM     LOG [HTTP] POST /api/products — 201 — 439ms
+app-1  | [Nest] 29  - 04/21/2026, 11:10:39 AM   ERROR [Exception] [d10b9bae-d040-4983-9804-b6ce30f0f750] POST /api/products — 400 — Validation failed
+app-1  | BadRequestException: Bad Request Exception
+app-1  |     at ValidationPipe.exceptionFactory (/app/node_modules/@nestjs/common/pipes/validation.pipe.js:112:20)
+app-1  |     at ValidationPipe.transform (/app/node_modules/@nestjs/common/pipes/validation.pipe.js:79:30)
+app-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1  |     at async /app/node_modules/@nestjs/core/pipes/pipes-consumer.js:15:25
+app-1  |     at async resolveParamValue (/app/node_modules/@nestjs/core/router/router-execution-context.js:148:23)
+app-1  |     at async Promise.all (index 0)
+app-1  |     at async pipesFn (/app/node_modules/@nestjs/core/router/router-execution-context.js:151:13)
+app-1  |     at async /app/node_modules/@nestjs/core/router/router-execution-context.js:37:30
+
+
+### Тест помилки з traceId
+PS C:\hlpf-env-setup> $res = Invoke-WebRequest -Uri "http://localhost:3000/api/products/999" -ErrorAction SilentlyContinue; $res.Content
+Invoke-WebRequest : {"error":{"code":404,"message":"Product #999 not found","traceId":"9828831a-9bd2-4e90-b1b7-a111d336588c"},"timestamp":"2026-04-21T11:27:28.
+275Z"}
+At line:1 char:8
++ $res = Invoke-WebRequest -Uri "http://localhost:3000/api/products/999 ...
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
+PS C:\hlpf-env-setup> 
