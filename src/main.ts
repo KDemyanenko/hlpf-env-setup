@@ -9,12 +9,15 @@ import { TrimPipe } from './common/pipes/trim.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  // 1. Глобальні пайпи (Валідація та очищення пробілів)
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-    new TrimPipe(),
-  );
+  
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true, // ЦЕЙ РЯДОК ОБОВ'ЯЗКОВИЙ для роботи Query параметрів
+    forbidNonWhitelisted: true,
+    transformOptions: {
+      enableImplicitConversion: true, // Допомагає автоматично конвертувати типи
+    },
+  }));
 
   // 2. Глобальні інтерцептори та фільтри (Логування, обгортка відповідей, помилки)
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());

@@ -657,3 +657,70 @@ At line:1 char:8
     + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebException
     + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
 PS C:\hlpf-env-setup> 
+
+
+
+
+
+
+
+
+
+
+
+
+## Student
+- Name: Демяненко Микола Володимирович
+- Group: 232 1
+ 
+## Практичне заняття №7 — Redis + Pagination + Filtering
+ 
+### Запуск проекту
+```bash
+cp .env.example .env
+docker compose up --build
+docker compose run --rm app npm run seed
+```
+ 
+### API: GET /api/products
+ 
+| Параметр | Тип | Default | Опис |
+|----------|-----|---------|------|
+| page | number | 1 | Номер сторінки |
+| pageSize | number | 10 | Елементів на сторінку (max 100) |
+| sort | string | createdAt | Поле сортування |
+| order | asc/desc | desc | Напрямок |
+| categoryId | number | - | Фільтр за категорією |
+| minPrice | number | - | Мінімальна ціна |
+| maxPrice | number | - | Максимальна ціна |
+| search | string | - | Пошук за назвою (ILIKE) |
+ 
+
+### Тест пагінації
+PS C:\hlpf-env-setup> curl.exe "http://localhost:3000/products?page=1&pageSize=5"
+{"data":{"items":[{"id":56,"name":"Fresh Product","description":null,"price":"42.00","stock":0,"isActive":true,"category":null,"createdAt":"2026-04-29T14:31:40.319Z","updatedAt":"2026-04-29T14:31:40.319Z"},{"id":55,"name":"Hoodie NestJS v4","description":null,"price":"85.00","stock":75,"isActive":true,"category":{"id":11,"name":"Clothing","description":null,"createdAt":"2026-04-29T14:03:06.197Z"},"createdAt":"2026-04-29T14:22:07.394Z","updatedAt":"2026-04-29T14:22:07.394Z"},{"id":54,"name":"T-Shirt Dev v4","description":null,"price":"55.00","stock":200,"isActive":true,"category":{"id":11,"name":"Clothing","description":null,"createdAt":"2026-04-29T14:03:06.197Z"},"createdAt":"2026-04-29T14:22:07.362Z","updatedAt":"2026-04-29T14:22:07.362Z"},{"id":53,"name":"MagSafe Charger v4","description":null,"price":"69.00","stock":80,"isActive":true,"category":{"id":7,"name":"Accessories","description":null,"createdAt":"2026-04-14T17:26:54.737Z"},"createdAt":"2026-04-29T14:22:07.329Z","updatedAt":"2026-04-29T14:22:07.329Z"},{"id":52,"name":"USB-C Cable v4","description":null,"price":"49.00","stock":500,"isActive":true,"category":{"id":7,"name":"Accessories","description":null,"createdAt":"2026-04-14T17:26:54.737Z"},"createdAt":"2026-04-29T14:22:07.295Z","updatedAt":"2026-04-29T14:22:07.295Z"}],"meta":{"page":1,"pageSize":5,"total":51,"totalPages":11}},"statusCode":200,"timestamp":"2026-04-29T14:51:38.205Z"}
+PS C:\hlpf-env-setup> 
+ 
+### Тест фільтрації
+PS C:\hlpf-env-setup> curl.exe "http://localhost:3000/products?categoryId=1&minPrice=500"
+{"data":{"items":[{"id":50,"name":"MacBook Pro v4","description":null,"price":"2529.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:07.236Z","updatedAt":"2026-04-29T14:22:07.236Z"},{"id":49,"name":"Galaxy S24 v4","description":null,"price":"879.00","stock":40,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:07.204Z","updatedAt":"2026-04-29T14:22:07.204Z"},{"id":48,"name":"iPhone 16 v4","description":null,"price":"1029.00","stock":50,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:07.177Z","updatedAt":"2026-04-29T14:22:07.177Z"},{"id":42,"name":"MacBook Pro v3","description":null,"price":"2519.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.854Z","updatedAt":"2026-04-29T14:22:06.854Z"},{"id":41,"name":"Galaxy S24 v3","description":null,"price":"869.00","stock":40,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.825Z","updatedAt":"2026-04-29T14:22:06.825Z"},{"id":40,"name":"iPhone 16 v3","description":null,"price":"1019.00","stock":50,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.803Z","updatedAt":"2026-04-29T14:22:06.803Z"},{"id":34,"name":"MacBook Pro v2","description":null,"price":"2509.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.612Z","updatedAt":"2026-04-29T14:22:06.612Z"},{"id":33,"name":"Galaxy S24 v2","description":null,"price":"859.00","stock":40,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.590Z","updatedAt":"2026-04-29T14:22:06.590Z"},{"id":32,"name":"iPhone 16 v2","description":null,"price":"1009.00","stock":50,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.563Z","updatedAt":"2026-04-29T14:22:06.563Z"},{"id":26,"name":"MacBook Pro","description":null,"price":"2499.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.328Z","updatedAt":"2026-04-29T14:22:06.328Z"}],"meta":{"page":1,"pageSize":10,"total":20,"totalPages":2}},"statusCode":200,"timestamp":"2026-04-29T14:52:08.633Z"}
+PS C:\hlpf-env-setup> 
+ 
+### Тест пошуку
+PS C:\hlpf-env-setup> curl.exe "http://localhost:3000/products?search=mac"
+{"data":{"items":[{"id":50,"name":"MacBook Pro v4","description":null,"price":"2529.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:07.236Z","updatedAt":"2026-04-29T14:22:07.236Z"},{"id":42,"name":"MacBook Pro v3","description":null,"price":"2519.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.854Z","updatedAt":"2026-04-29T14:22:06.854Z"},{"id":34,"name":"MacBook Pro v2","description":null,"price":"2509.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.612Z","updatedAt":"2026-04-29T14:22:06.612Z"},{"id":26,"name":"MacBook Pro","description":null,"price":"2499.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:22:06.328Z","updatedAt":"2026-04-29T14:22:06.328Z"},{"id":17,"name":"MacBook Pro","description":null,"price":"2499.00","stock":15,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-29T14:16:04.033Z","updatedAt":"2026-04-29T14:16:04.033Z"},{"id":13,"name":"MacBook Air M4","description":null,"price":"1299.99","stock":25,"isActive":true,"category":null,"createdAt":"2026-04-21T11:05:53.527Z","updatedAt":"2026-04-21T11:05:53.527Z"},{"id":12,"name":"Admin MacBook","description":null,"price":"1500.00","stock":5,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-16T16:07:48.262Z","updatedAt":"2026-04-16T16:07:48.262Z"},{"id":11,"name":"MacBook Pro 16","description":null,"price":"2499.99","stock":10,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-16T16:06:01.237Z","updatedAt":"2026-04-16T16:06:01.237Z"},{"id":8,"name":"MacBook Pro 16","description":null,"price":"2499.99","stock":10,"isActive":true,"category":{"id":1,"name":"Electronics","description":"Gadgets and devices","createdAt":"2026-04-01T12:32:54.224Z"},"createdAt":"2026-04-16T15:23:48.933Z","updatedAt":"2026-04-16T15:23:48.933Z"}],"meta":{"page":1,"pageSize":10,"total":9,"totalPages":1}},"statusCode":200,"timestamp":"2026-04-29T14:53:10.246Z"}
+PS C:\hlpf-env-setup> 
+ 
+### Тест кешування (Redis)
+PS C:\hlpf-env-setup> docker compose exec redis redis-cli KEYS "products:*"
+1) "products:{\"page\":1,\"pageSize\":5,\"sort\":\"createdAt\",\"order\":\"desc\"}"
+ 
+### Тест інвалідації кешу
+PS C:\hlpf-env-setup> docker compose exec redis redis-cli KEYS "products:*"
+1) "products:{\"page\":1,\"pageSize\":10,\"sort\":\"createdAt\",\"order\":\"desc\"}"
+
+PS C:\hlpf-env-setup> curl.exe -X POST http://localhost:3000/products -H "Content-Type: application/json" -d "{\"name\": \"New Item\", \"price\": 100}"
+{"data":{"id":58,"name":"New Item","price":100},"statusCode":201}
+
+PS C:\hlpf-env-setup> docker compose exec redis redis-cli KEYS "products:*"
+(empty array)
